@@ -22,6 +22,7 @@ password: "your_tesla_password"
 auth_tokens:
   - some_random_auth_token
   - another_random_auth_tkn
+EOM
 $ chmod 600 ~/.config/tesla.yml
 ```
 
