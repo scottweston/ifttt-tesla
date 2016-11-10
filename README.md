@@ -53,10 +53,10 @@ api.tesla.my.domain {
 Caddy will then try and obtain and use LetsEncrypt certs for your service.
 As the only protection to calling the API is the AuthToken it is important
 that you at least SSL protect the service so that the AuthToken is not able
-to be packet captured in transit. Not SSLing your service open it up to
+to be packet captured in transit. Not SSLing your service opens it up to
 potential abuse. I have specifically not put in the ability to remote
 **start** a Tesla because even with SSL there is a non-zero chance of this
-API being exploited.
+API or IFTTT being exploited.
 
 # Setting up IFTTT
 
