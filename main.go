@@ -63,6 +63,28 @@ func TeslaHonk(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+func TeslaFlash(w http.ResponseWriter, req *http.Request) {
+	params := mux.Vars(req)
+	v, err := strconv.Atoi(params["vehicle"])
+	if err != nil {
+		http.Error(w, "bad request", 400)
+		return
+	}
+
+	if !isValidClient(req.Body) {
+		http.Error(w, "unauthorized", 403)
+		return
+	}
+
+	if len(vehicles) > v {
+		vehicle := vehicles[v]
+		vehicle.FlashLights()
+	} else {
+		http.Error(w, "vehicle not found", 404)
+		return
+	}
+}
+
 func TeslaStartCharging(w http.ResponseWriter, req *http.Request) {
 	params := mux.Vars(req)
 	v, err := strconv.Atoi(params["vehicle"])
@@ -151,6 +173,28 @@ func TeslaUnlock(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+func TeslaOpenChargePort(w http.ResponseWriter, req *http.Request) {
+	params := mux.Vars(req)
+	v, err := strconv.Atoi(params["vehicle"])
+	if err != nil {
+		http.Error(w, "bad request", 400)
+		return
+	}
+
+	if !isValidClient(req.Body) {
+		http.Error(w, "unauthorized", 403)
+		return
+	}
+
+	if len(vehicles) > v {
+		vehicle := vehicles[v]
+		vehicle.OpenChargePort()
+	} else {
+		http.Error(w, "vehicle not found", 404)
+		return
+	}
+}
+
 func TeslaSetChargeLimit(w http.ResponseWriter, req *http.Request) {
 	params := mux.Vars(req)
 	v, err := strconv.Atoi(params["vehicle"])
@@ -183,6 +227,33 @@ func TeslaSetChargeLimit(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+func TeslaSetTemperature(w http.ResponseWriter, req *http.Request) {
+	params := mux.Vars(req)
+	v, err := strconv.Atoi(params["vehicle"])
+	if err != nil {
+		http.Error(w, "bad request", 400)
+		return
+	}
+	t, err := strconv.ParseFloat(params["temp"], 64)
+	if err != nil {
+		http.Error(w, "bad request", 400)
+		return
+	}
+
+	if !isValidClient(req.Body) {
+		http.Error(w, "unauthorized", 403)
+		return
+	}
+
+	if len(vehicles) > v {
+		vehicle := vehicles[v]
+		vehicle.SetTemprature(t, t) // TODO: misspelt in support library
+	} else {
+		http.Error(w, "vehicle not found", 404)
+		return
+	}
+}
+
 func main() {
 	router := mux.NewRouter()
 
@@ -191,6 +262,7 @@ func main() {
 	conf.SetConfigName("tesla")
 	conf.AddConfigPath(".")
 	conf.AddConfigPath("$HOME/.config/")
+	conf.AddConfigPath("/")
 
 	err := conf.ReadInConfig()
 	if err != nil {
@@ -219,11 +291,14 @@ func main() {
 	}
 
 	router.HandleFunc("/honk/{vehicle:[0-9]+}", TeslaHonk).Methods("POST")
+	router.HandleFunc("/unlock/{vehicle:[0-9]+}", TeslaUnlock).Methods("POST")
+	router.HandleFunc("/lock/{vehicle:[0-9]+}", TeslaLock).Methods("POST")
+	router.HandleFunc("/set_charge_limit/{vehicle:[0-9]+}/{limit:[0-9]+}", TeslaSetChargeLimit).Methods("POST")
 	router.HandleFunc("/start_charge/{vehicle:[0-9]+}", TeslaStartCharging).Methods("POST")
 	router.HandleFunc("/stop_charge/{vehicle:[0-9]+}", TeslaStopCharging).Methods("POST")
-	router.HandleFunc("/lock/{vehicle:[0-9]+}", TeslaLock).Methods("POST")
-	router.HandleFunc("/unlock/{vehicle:[0-9]+}", TeslaUnlock).Methods("POST")
-	router.HandleFunc("/set_charge_limit/{vehicle:[0-9]+}/{limit:[0-9]+}", TeslaSetChargeLimit).Methods("POST")
+	router.HandleFunc("/flash/{vehicle:[0-9]+}", TeslaFlash).Methods("POST")
+	router.HandleFunc("/open_charge_port/{vehicle:[0-9]+}", TeslaOpenChargePort).Methods("POST")
+	router.HandleFunc("/set_temperature/{vehicle:[0-9]+}/{temp:[0-9]+}", TeslaSetTemperature).Methods("POST")
 
 	log.Fatal(http.ListenAndServe(":3514", router))
 }
