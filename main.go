@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"github.com/fsnotify/fsnotify"
+	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/jsgoecke/tesla"
 	"github.com/spf13/viper"
@@ -10,6 +11,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"sort"
 	"strconv"
 )
@@ -26,10 +28,12 @@ func isValidClient(body io.ReadCloser) bool {
 
 	b, err := ioutil.ReadAll(body)
 	if err != nil {
+		log.Println("missing body, can't authenticate request")
 		return false
 	}
 	err = json.Unmarshal(b, &auth)
 	if err != nil {
+		log.Println("malformed body, can't authenticate request")
 		return false
 	}
 	auth_tokens := conf.GetStringSlice("auth_tokens")
@@ -38,6 +42,7 @@ func isValidClient(body io.ReadCloser) bool {
 	if i < len(auth_tokens) && auth_tokens[i] == auth.AuthToken {
 		return true
 	}
+	log.Println("invalid token: " + auth.AuthToken)
 	return false
 }
 
@@ -56,7 +61,10 @@ func TeslaHonk(w http.ResponseWriter, req *http.Request) {
 
 	if len(vehicles) > v {
 		vehicle := vehicles[v]
-		vehicle.HonkHorn()
+		err = vehicle.HonkHorn()
+		if err != nil {
+			log.Println(err)
+		}
 	} else {
 		http.Error(w, "vehicle not found", 404)
 		return
@@ -78,7 +86,10 @@ func TeslaFlash(w http.ResponseWriter, req *http.Request) {
 
 	if len(vehicles) > v {
 		vehicle := vehicles[v]
-		vehicle.FlashLights()
+		err = vehicle.FlashLights()
+		if err != nil {
+			log.Println(err)
+		}
 	} else {
 		http.Error(w, "vehicle not found", 404)
 		return
@@ -100,7 +111,10 @@ func TeslaStartCharging(w http.ResponseWriter, req *http.Request) {
 
 	if len(vehicles) > v {
 		vehicle := vehicles[v]
-		vehicle.StartCharging()
+		err = vehicle.StartCharging()
+		if err != nil {
+			log.Println(err)
+		}
 	} else {
 		http.Error(w, "vehicle not found", 404)
 		return
@@ -122,7 +136,10 @@ func TeslaStopCharging(w http.ResponseWriter, req *http.Request) {
 
 	if len(vehicles) > v {
 		vehicle := vehicles[v]
-		vehicle.StopCharging()
+		err = vehicle.StopCharging()
+		if err != nil {
+			log.Println(err)
+		}
 	} else {
 		http.Error(w, "vehicle not found", 404)
 		return
@@ -144,7 +161,10 @@ func TeslaLock(w http.ResponseWriter, req *http.Request) {
 
 	if len(vehicles) > v {
 		vehicle := vehicles[v]
-		vehicle.LockDoors()
+		err = vehicle.LockDoors()
+		if err != nil {
+			log.Println(err)
+		}
 	} else {
 		http.Error(w, "vehicle not found", 404)
 		return
@@ -166,7 +186,10 @@ func TeslaUnlock(w http.ResponseWriter, req *http.Request) {
 
 	if len(vehicles) > v {
 		vehicle := vehicles[v]
-		vehicle.UnlockDoors()
+		err = vehicle.UnlockDoors()
+		if err != nil {
+			log.Println(err)
+		}
 	} else {
 		http.Error(w, "vehicle not found", 404)
 		return
@@ -188,7 +211,10 @@ func TeslaOpenChargePort(w http.ResponseWriter, req *http.Request) {
 
 	if len(vehicles) > v {
 		vehicle := vehicles[v]
-		vehicle.OpenChargePort()
+		err = vehicle.OpenChargePort()
+		if err != nil {
+			log.Println(err)
+		}
 	} else {
 		http.Error(w, "vehicle not found", 404)
 		return
@@ -216,7 +242,10 @@ func TeslaSetChargeLimit(w http.ResponseWriter, req *http.Request) {
 	if len(vehicles) > v {
 		vehicle := vehicles[v]
 		if l > 0 && l <= 100 {
-			vehicle.SetChargeLimit(l)
+			err = vehicle.SetChargeLimit(l)
+			if err != nil {
+				log.Println(err)
+			}
 		} else {
 			http.Error(w, "invalid charge limit", 400)
 			return
@@ -247,7 +276,10 @@ func TeslaSetTemperature(w http.ResponseWriter, req *http.Request) {
 
 	if len(vehicles) > v {
 		vehicle := vehicles[v]
-		vehicle.SetTemprature(t, t) // TODO: misspelt in support library
+		err = vehicle.SetTemprature(t, t) // TODO: misspelt in support library
+		if err != nil {
+			log.Println(err)
+		}
 	} else {
 		http.Error(w, "vehicle not found", 404)
 		return
@@ -300,5 +332,6 @@ func main() {
 	router.HandleFunc("/open_charge_port/{vehicle:[0-9]+}", TeslaOpenChargePort).Methods("POST")
 	router.HandleFunc("/set_temperature/{vehicle:[0-9]+}/{temp:[0-9]+}", TeslaSetTemperature).Methods("POST")
 
-	log.Fatal(http.ListenAndServe(":3514", router))
+	loggedRouter := handlers.LoggingHandler(os.Stdout, router)
+	log.Fatal(http.ListenAndServe(":3514", loggedRouter))
 }
