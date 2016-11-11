@@ -68,15 +68,27 @@ The following endpoints are supported:
   * `/set_charge_limit/{vehicle}/{limit}`
   * `/start_charge/{vehicle}`
   * `/stop_charge/{vehicle}`
+  * `/start_hvac/{vehicle}`
+  * `/stop_hvac/{vehicle}`
   * `/flash/{vehicle}`
   * `/open_charge_port/{vehicle}`
-  * `/set_temperature/{vehicle}/{temp}`
 
 If you only own 1 vehicle then `{vehicle}` will be `0`
 
-Now create IFTTT applets that looks like:
+Now create IFTTT applets for `if *google assistant* then *maker*` that looks like:
 
 ![ifttt applet](https://raw.githubusercontent.com/scottweston/ifttt-tesla/master/ifttt.com_applets_43679679d.png)
 
-Obviously you'll need to replace `api.tesla.my.domain` and `some_random_auth_token`
-with your own values for your installation.
+Obviously you'll need to replace `api.tesla.my.domain` and
+`some_random_auth_token` with your own values for your installation. Also take
+care using the **+ Ingredient** button to add the **NumberField** into the URL,
+I've noticed it also adds in a space (that needs to be removed).
+
+## Hints
+
+You can use `pwgen 64 1` to quickly create random AuthTokens, you only need 1
+AuthToken per 3rd party service. If you suspect a token to have been
+compromised you can simply remove that AuthToken and not have to reconfigure
+any other 3rd party services. Whilst I wrote this service specifically for IFTTT
+it could easily be used to integrate Tesla control into other services with the
+ability to call out to remote webhooks.
