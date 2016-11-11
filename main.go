@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/fsnotify/fsnotify"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
@@ -14,6 +15,7 @@ import (
 	"os"
 	"sort"
 	"strconv"
+	"time"
 )
 
 var conf *viper.Viper
@@ -61,14 +63,21 @@ func TeslaHonk(w http.ResponseWriter, req *http.Request) {
 
 	if len(vehicles) > v {
 		vehicle := vehicles[v]
-		err = vehicle.HonkHorn()
-		if err != nil {
+		var try = 0
+		for try < conf.GetInt("retries") {
+			err = vehicle.HonkHorn()
+			if err == nil {
+				break
+			}
 			log.Println(err)
+			try++
+			time.Sleep(1000 * time.Millisecond)
 		}
 	} else {
 		http.Error(w, "vehicle not found", 404)
 		return
 	}
+	fmt.Fprintln(w, "ok")
 }
 
 func TeslaFlash(w http.ResponseWriter, req *http.Request) {
@@ -86,14 +95,21 @@ func TeslaFlash(w http.ResponseWriter, req *http.Request) {
 
 	if len(vehicles) > v {
 		vehicle := vehicles[v]
-		err = vehicle.FlashLights()
-		if err != nil {
+		var try = 0
+		for try < conf.GetInt("retries") {
+			err = vehicle.FlashLights()
+			if err == nil {
+				break
+			}
 			log.Println(err)
+			try++
+			time.Sleep(1000 * time.Millisecond)
 		}
 	} else {
 		http.Error(w, "vehicle not found", 404)
 		return
 	}
+	fmt.Fprintln(w, "ok")
 }
 
 func TeslaStartCharging(w http.ResponseWriter, req *http.Request) {
@@ -111,14 +127,21 @@ func TeslaStartCharging(w http.ResponseWriter, req *http.Request) {
 
 	if len(vehicles) > v {
 		vehicle := vehicles[v]
-		err = vehicle.StartCharging()
-		if err != nil {
+		var try = 0
+		for try < conf.GetInt("retries") {
+			err = vehicle.StartCharging()
+			if err == nil {
+				break
+			}
 			log.Println(err)
+			try++
+			time.Sleep(1000 * time.Millisecond)
 		}
 	} else {
 		http.Error(w, "vehicle not found", 404)
 		return
 	}
+	fmt.Fprintln(w, "ok")
 }
 
 func TeslaStopCharging(w http.ResponseWriter, req *http.Request) {
@@ -136,14 +159,85 @@ func TeslaStopCharging(w http.ResponseWriter, req *http.Request) {
 
 	if len(vehicles) > v {
 		vehicle := vehicles[v]
-		err = vehicle.StopCharging()
-		if err != nil {
+		var try = 0
+		for try < conf.GetInt("retries") {
+			err = vehicle.StopCharging()
+			if err == nil {
+				break
+			}
 			log.Println(err)
+			try++
+			time.Sleep(1000 * time.Millisecond)
 		}
 	} else {
 		http.Error(w, "vehicle not found", 404)
 		return
 	}
+	fmt.Fprintln(w, "ok")
+}
+
+func TeslaStartHvac(w http.ResponseWriter, req *http.Request) {
+	params := mux.Vars(req)
+	v, err := strconv.Atoi(params["vehicle"])
+	if err != nil {
+		http.Error(w, "bad request", 400)
+		return
+	}
+
+	if !isValidClient(req.Body) {
+		http.Error(w, "unauthorized", 403)
+		return
+	}
+
+	if len(vehicles) > v {
+		vehicle := vehicles[v]
+		var try = 0
+		for try < conf.GetInt("retries") {
+			err = vehicle.StartAirConditioning()
+			if err == nil {
+				break
+			}
+			log.Println(err)
+			try++
+			time.Sleep(1000 * time.Millisecond)
+		}
+	} else {
+		http.Error(w, "vehicle not found", 404)
+		return
+	}
+	fmt.Fprintln(w, "ok")
+}
+
+func TeslaStopHvac(w http.ResponseWriter, req *http.Request) {
+	params := mux.Vars(req)
+	v, err := strconv.Atoi(params["vehicle"])
+	if err != nil {
+		http.Error(w, "bad request", 400)
+		return
+	}
+
+	if !isValidClient(req.Body) {
+		http.Error(w, "unauthorized", 403)
+		return
+	}
+
+	if len(vehicles) > v {
+		vehicle := vehicles[v]
+		var try = 0
+		for try < conf.GetInt("retries") {
+			err = vehicle.StopAirConditioning()
+			if err == nil {
+				break
+			}
+			log.Println(err)
+			try++
+			time.Sleep(1000 * time.Millisecond)
+		}
+	} else {
+		http.Error(w, "vehicle not found", 404)
+		return
+	}
+	fmt.Fprintln(w, "ok")
 }
 
 func TeslaLock(w http.ResponseWriter, req *http.Request) {
@@ -161,14 +255,21 @@ func TeslaLock(w http.ResponseWriter, req *http.Request) {
 
 	if len(vehicles) > v {
 		vehicle := vehicles[v]
-		err = vehicle.LockDoors()
-		if err != nil {
+		var try = 0
+		for try < conf.GetInt("retries") {
+			err = vehicle.LockDoors()
+			if err == nil {
+				break
+			}
 			log.Println(err)
+			try++
+			time.Sleep(1000 * time.Millisecond)
 		}
 	} else {
 		http.Error(w, "vehicle not found", 404)
 		return
 	}
+	fmt.Fprintln(w, "ok")
 }
 
 func TeslaUnlock(w http.ResponseWriter, req *http.Request) {
@@ -186,14 +287,21 @@ func TeslaUnlock(w http.ResponseWriter, req *http.Request) {
 
 	if len(vehicles) > v {
 		vehicle := vehicles[v]
-		err = vehicle.UnlockDoors()
-		if err != nil {
+		var try = 0
+		for try < conf.GetInt("retries") {
+			err = vehicle.UnlockDoors()
+			if err == nil {
+				break
+			}
 			log.Println(err)
+			try++
+			time.Sleep(1000 * time.Millisecond)
 		}
 	} else {
 		http.Error(w, "vehicle not found", 404)
 		return
 	}
+	fmt.Fprintln(w, "ok")
 }
 
 func TeslaOpenChargePort(w http.ResponseWriter, req *http.Request) {
@@ -211,14 +319,21 @@ func TeslaOpenChargePort(w http.ResponseWriter, req *http.Request) {
 
 	if len(vehicles) > v {
 		vehicle := vehicles[v]
-		err = vehicle.OpenChargePort()
-		if err != nil {
+		var try = 0
+		for try < conf.GetInt("retries") {
+			err = vehicle.OpenChargePort()
+			if err == nil {
+				break
+			}
 			log.Println(err)
+			try++
+			time.Sleep(1000 * time.Millisecond)
 		}
 	} else {
 		http.Error(w, "vehicle not found", 404)
 		return
 	}
+	fmt.Fprintln(w, "ok")
 }
 
 func TeslaSetChargeLimit(w http.ResponseWriter, req *http.Request) {
@@ -242,9 +357,15 @@ func TeslaSetChargeLimit(w http.ResponseWriter, req *http.Request) {
 	if len(vehicles) > v {
 		vehicle := vehicles[v]
 		if l > 0 && l <= 100 {
-			err = vehicle.SetChargeLimit(l)
-			if err != nil {
+			var try = 0
+			for try < conf.GetInt("retries") {
+				err = vehicle.SetChargeLimit(l)
+				if err == nil {
+					break
+				}
 				log.Println(err)
+				try++
+				time.Sleep(1000 * time.Millisecond)
 			}
 		} else {
 			http.Error(w, "invalid charge limit", 400)
@@ -254,6 +375,7 @@ func TeslaSetChargeLimit(w http.ResponseWriter, req *http.Request) {
 		http.Error(w, "vehicle not found", 404)
 		return
 	}
+	fmt.Fprintln(w, "ok")
 }
 
 func TeslaSetTemperature(w http.ResponseWriter, req *http.Request) {
@@ -263,7 +385,7 @@ func TeslaSetTemperature(w http.ResponseWriter, req *http.Request) {
 		http.Error(w, "bad request", 400)
 		return
 	}
-	t, err := strconv.ParseFloat(params["temp"], 64)
+	t, err := strconv.Atoi(params["temp"])
 	if err != nil {
 		http.Error(w, "bad request", 400)
 		return
@@ -274,16 +396,28 @@ func TeslaSetTemperature(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	var temp = float64(t)
+	if !conf.GetBool("metric") {
+		temp = (temp - 32) / 1.8
+	}
+
 	if len(vehicles) > v {
 		vehicle := vehicles[v]
-		err = vehicle.SetTemprature(t, t) // TODO: misspelt in support library
-		if err != nil {
+		var try = 0
+		for try < conf.GetInt("retries") {
+			err = vehicle.SetTemprature(temp, temp) // TODO: misspelt in support library
+			if err == nil {
+				break
+			}
 			log.Println(err)
+			try++
+			time.Sleep(1000 * time.Millisecond)
 		}
 	} else {
 		http.Error(w, "vehicle not found", 404)
 		return
 	}
+	fmt.Fprintln(w, "ok")
 }
 
 func main() {
@@ -295,6 +429,11 @@ func main() {
 	conf.AddConfigPath(".")
 	conf.AddConfigPath("$HOME/.config/")
 	conf.AddConfigPath("/")
+
+	conf.SetDefault("metric", true)
+	conf.SetDefault("bind", "0.0.0.0")
+	conf.SetDefault("port", "3514")
+	conf.SetDefault("retries", 3)
 
 	err := conf.ReadInConfig()
 	if err != nil {
@@ -328,10 +467,12 @@ func main() {
 	router.HandleFunc("/set_charge_limit/{vehicle:[0-9]+}/{limit:[0-9]+}", TeslaSetChargeLimit).Methods("POST")
 	router.HandleFunc("/start_charge/{vehicle:[0-9]+}", TeslaStartCharging).Methods("POST")
 	router.HandleFunc("/stop_charge/{vehicle:[0-9]+}", TeslaStopCharging).Methods("POST")
+	router.HandleFunc("/start_hvac/{vehicle:[0-9]+}", TeslaStartHvac).Methods("POST")
+	router.HandleFunc("/stop_hvac/{vehicle:[0-9]+}", TeslaStopHvac).Methods("POST")
 	router.HandleFunc("/flash/{vehicle:[0-9]+}", TeslaFlash).Methods("POST")
 	router.HandleFunc("/open_charge_port/{vehicle:[0-9]+}", TeslaOpenChargePort).Methods("POST")
 	router.HandleFunc("/set_temperature/{vehicle:[0-9]+}/{temp:[0-9]+}", TeslaSetTemperature).Methods("POST")
 
 	loggedRouter := handlers.LoggingHandler(os.Stdout, router)
-	log.Fatal(http.ListenAndServe(":3514", loggedRouter))
+	log.Fatal(http.ListenAndServe(conf.GetString("bind")+":"+conf.GetString("port"), loggedRouter))
 }
