@@ -5,6 +5,8 @@ A simple golang based service to allow ifttt to talk to the tesla owner api
 # Build
 
 ```
+$ git clone https://github.com/scottweston/ifttt-tesla.git
+$ cd ifttt-tesla
 $ docker build -t ifttt-tesla .
 ```
 
@@ -26,6 +28,11 @@ EOM
 $ chmod 600 ~/.config/tesla.yml
 ```
 
+Be sure to put in your own Tesla login details and create more secure
+auth_token(s). The included client id and secret do currently work and are the
+only publicly available ones at the moment - they could get invalidated at any
+time at which point this service (and many others) would fail.
+
 # Run
 
 ```
@@ -35,10 +42,9 @@ $ docker run --name=ifttt-tesla --restart=always -p 127.0.0.1:3514:3514 -v ~/.co
 # Reverse Proxy
 
 Setting up a reverse proxy is outside the scope of this document however you
-will need to create a reverse proxy http server (I pity the fool that doesn't
-SSL this service!) to map access through to your service. If you want a quick
-and easy way to do this with automatic LetsEncrypt SSL protection look into
-using [caddy](https://caddyserver.com/)
+should create a **SSL'd** reverse proxy http server to access this service. If
+you want a quick and easy way to do this with automatic LetsEncrypt SSL
+protection look into using [caddy](https://caddyserver.com/)
 
 ## Caddy example
 
@@ -75,7 +81,7 @@ The following endpoints are supported:
 
 If you only own 1 vehicle then `{vehicle}` will be `0`
 
-Now create IFTTT applets for `if *google assistant* then *maker*` that looks like:
+Now create IFTTT applets for `if *google_assistant* then *maker*` that look like:
 
 ![ifttt applet](https://raw.githubusercontent.com/scottweston/ifttt-tesla/master/ifttt.com_applets_43679679d.png)
 
@@ -88,7 +94,7 @@ I've noticed it also adds in a space (that needs to be removed).
 
 You can use `pwgen 64 1` to quickly create random AuthTokens, you only need 1
 AuthToken per 3rd party service. If you suspect a token to have been
-compromised you can simply remove that AuthToken and not have to reconfigure
-any other 3rd party services. Whilst I wrote this service specifically for IFTTT
-it could easily be used to integrate Tesla control into other services with the
-ability to call out to remote webhooks.
+compromised you can simply remove/replace that AuthToken and not have to
+reconfigure any other 3rd party services. Whilst I wrote this service
+specifically for IFTTT it could easily be used to integrate Tesla control into
+other services with the ability to call out to remote webhooks.
